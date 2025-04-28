@@ -45,7 +45,7 @@ async function fetchWalletTokens() {
 
 async function fetchTokenPrice(mint) {
   try {
-    const res = await fetch(`https://price.jup.ag/v4/price?ids=${mint}`);
+    const res = await fetch(`/api/proxy-price?mint=${mint}`);
     if (!res.ok) {
       console.error(`Failed to fetch price for ${mint}: ${res.status}`);
       return null;
@@ -55,7 +55,7 @@ async function fetchTokenPrice(mint) {
       return data.data[mint].price;
     }
   } catch (error) {
-    console.error("Error fetching price from Jupiter Price API:", error);
+    console.error("Error fetching price from proxy:", error);
   }
   return null;
 }
