@@ -17,7 +17,6 @@
 
 <script>
 const WALLET_ADDRESS = "2eb81eBXidrgW6sSzTDnHTEQpqJpmkANMCSRS1BKjUku";
-const BIRDEYE_API_KEY = "5e03e241b51b4ed3946001c68634ddcf";
 
 const tokenMintMap = {
   "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump": "Fartcoin",
@@ -46,11 +45,7 @@ async function fetchWalletTokens() {
 
 async function fetchTokenPrice(mint) {
   try {
-    const res = await fetch(`https://public-api.birdeye.so/market/token_price?address=${mint}`, {
-      headers: {
-        'Authorization': `Bearer ${BIRDEYE_API_KEY}`
-      }
-    });
+    const res = await fetch(`/api/proxy-price?mint=${mint}`);
     if (!res.ok) {
       console.warn(`No price found for ${mint}: ${res.status}`);
       return null;
@@ -60,7 +55,7 @@ async function fetchTokenPrice(mint) {
       return data.data.value;
     }
   } catch (error) {
-    console.error("Error fetching price from Birdeye:", error);
+    console.error("Error fetching price from proxy:", error);
   }
   return null;
 }
