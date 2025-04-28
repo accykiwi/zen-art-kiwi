@@ -45,7 +45,7 @@ async function fetchWalletTokens() {
 
 async function fetchTokenPrice(mint) {
   try {
-    const res = await fetch(`https://public-api.birdeye.so/public/price?address=${mint}`);
+    const res = await fetch(`https://public-api.birdeye.so/market/token_price?address=${mint}`);
     if (!res.ok) {
       console.warn(`No price found for ${mint}: ${res.status}`);
       return null;
@@ -91,4 +91,3 @@ setInterval(updateDashboard, 60000);
 
 </body>
 </html>
-
