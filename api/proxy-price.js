@@ -7,14 +7,14 @@ export default async function handler(req, res) {
 
   const mint = req.query.mint;
   if (!mint) {
-    return res.status(400).json({ message: 'Mint address missing' });
+    return res.status(400).json({ message: 'Missing mint address' });
   }
 
   try {
     const response = await fetch(`https://price.jup.ag/v4/price?ids=${mint}`);
     if (!response.ok) {
       console.error(`Jupiter price API error: ${response.status}`);
-      return res.status(502).json({ message: 'Bad Gateway to Jupiter' });
+      return res.status(502).json({ message: 'Bad Gateway from Jupiter' });
     }
 
     const data = await response.json();
