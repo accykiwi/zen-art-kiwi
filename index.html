@@ -21,7 +21,7 @@ const WALLET_ADDRESS = "2eb81eBXidrgW6sSzTDnHTEQpqJpmkANMCSRS1BKjUku";
 const tokenMintMap = {
   "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump": "Fartcoin",
   "J3NKxxXZcnNiMjKw9hYb2K4LUxgwB6t1FtPtQVsv3KFr": "SPX6900",
-  "63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGg5tiJxcqj9": "GIGACHAD",
+  "63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9": "GIGACHAD",
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "USDC",
   "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R": "RAY"
 };
@@ -29,9 +29,9 @@ const tokenMintMap = {
 const tokenPriceMap = {
   USDC: { coingeckoId: "usd-coin" },
   RAY: { coingeckoId: "raydium" },
-  SPX6900: { birdeyeSymbol: "SPX6900" },
-  Fartcoin: { birdeyeSymbol: "Fartcoin" },
-  GIGACHAD: { birdeyeSymbol: "GIGACHAD" },
+  SPX6900: { birdeyeAddress: "J3NKxxXZcnNiMjKw9hYb2K4LUxgwB6t1FtPtQVsv3KFr" },
+  Fartcoin: { birdeyeAddress: "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump" },
+  GIGACHAD: { birdeyeAddress: "63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9" },
 };
 
 async function fetchWalletTokens() {
@@ -58,8 +58,8 @@ async function fetchTokenPrice(symbol) {
     const data = await res.json();
     return data[tokenPriceMap[symbol].coingeckoId]?.usd || 0;
   }
-  if (tokenPriceMap[symbol].birdeyeSymbol) {
-    const res = await fetch(`https://public-api.birdeye.so/public/price?symbol=${tokenPriceMap[symbol].birdeyeSymbol}`);
+  if (tokenPriceMap[symbol].birdeyeAddress) {
+    const res = await fetch(`https://public-api.birdeye.so/public/price?address=${tokenPriceMap[symbol].birdeyeAddress}`);
     const data = await res.json();
     return data?.data?.value || 0;
   }
