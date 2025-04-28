@@ -1,5 +1,3 @@
-// /api/proxy-price.js
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Only GET method allowed' });
@@ -7,17 +5,23 @@ export default async function handler(req, res) {
 
   const mint = req.query.mint;
   if (!mint) {
-    return res.status(400).json({ message: 'Missing mint address' });
+    return res.status(400).json({ message: 'Mint address missing' });
   }
 
   try {
     const response = await fetch(`https://price.jup.ag/v4/price?ids=${mint}`);
     if (!response.ok) {
-      console.error(`Jupiter price API error: ${response.status}`);
-      return res.status(502).json({ message: 'Bad Gateway from Jupiter' });
+      // Jupiter did not find a price
+      return res.status(404).json({ message: `No price found for ${mint}` });
     }
 
     const data = await response.json();
+    if (!data.data || !data.data[mint] || !data.data[mint].price) {
+      // No price in the response
+      return res.status(404).json({ message: `No price data for ${mint}` });
+    }
+
+    // Valid price found
     return res.status(200).json(data);
 
   } catch (error) {
