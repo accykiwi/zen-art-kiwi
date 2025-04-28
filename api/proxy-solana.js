@@ -1,8 +1,8 @@
 // /api/proxy-solana.js
 
-export default async function handler(req, res) { 
+export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
+    return res.status(405).json({ message: "Method Not Allowed" });
   }
 
   const { wallet } = req.body;
@@ -29,11 +29,22 @@ export default async function handler(req, res) {
       })
     });
 
+    if (!response.ok) {
+      console.error("Error from Solana RPC:", response.statusText);
+      return res.status(502).json({ message: "Bad Gateway from Solana RPC" });
+    }
+
     const data = await response.json();
+
+    if (!data.result || !Array.isArray(data.result.value)) {
+      console.error("Invalid Solana response format:", data);
+      return res.status(500).json({ message: "Invalid Solana RPC response" });
+    }
+
     return res.status(200).json(data);
 
   } catch (error) {
     console.error("Proxy error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 }
