@@ -45,14 +45,15 @@ async function fetchWalletTokens() {
 
 async function fetchTokenPrice(mint) {
   try {
-    const res = await fetch(`/api/proxy-price?mint=${mint}`);
+    const lowerMint = mint.toLowerCase();
+    const res = await fetch(`/api/proxy-price?mint=${lowerMint}`);
     if (!res.ok) {
-      console.error(`Failed to fetch price for ${mint}: ${res.status}`);
+      console.warn(`No price found for ${lowerMint}: ${res.status}`);
       return null;
     }
     const data = await res.json();
-    if (data && data.data && data.data[mint] && data.data[mint].price) {
-      return data.data[mint].price;
+    if (data && data.data && data.data[lowerMint] && data.data[lowerMint].price) {
+      return data.data[lowerMint].price;
     }
   } catch (error) {
     console.error("Error fetching price from proxy:", error);
