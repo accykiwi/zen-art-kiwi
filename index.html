@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Solana Wallet Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #111; color: white; font-family: Arial, sans-serif; padding: 20px; }
+    .token { background: #222; margin: 10px 0; padding: 10px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+
+<h1>Solana Wallet Dashboard</h1>
+<div id="totalValue">Total Portfolio Value: Loading...</div>
+<div id="tokens"></div>
+
+<script>
+const WALLET_ADDRESS = "2eb81eBXidrgW6sSzTDnHTEQpqJpmkANMCSRS1BKjUku";
+
+const tokenMintMap = {
+  "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump": "Fartcoin",
+  "J3NKxxXZcnNiMjKw9hYb2K4LUxgwB6t1FtPtQVsv3KFr": "SPX6900",
+  "63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGg5tiJxcqj9": "GIGACHAD",
+  "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "USDC",
+  "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R": "RAY"
+};
+
+const tokenPriceMap = {
+  USDC: { coingeckoId: "usd-coin" },
+  RAY: { coingeckoId: "raydium" },
+  SPX6900: { birdeyeSymbol: "SPX6900" },
+  Fartcoin: { birdeyeSymbol: "Fartcoin" },
+  GIGACHAD: { birdeyeSymbol: "GIGACHAD" },
+};
+
+async function fetchWalletTokens() {
+  const response = await fetch('/api/proxy-solana', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ wallet: WALLET_ADDRESS })
+  });
+  const data = await response.json();
+  return (data?.result?.value || []).map(account => {
+    const info = account?.account?.data?.parsed?.info;
+    if (!info) return null;
+    const mint = info.mint;
+    const symbol = tokenMintMap[mint] || "Unknown";
+    const amount = parseFloat(info.tokenAmount?.uiAmount || 0);
+    return { symbol, amount };
+  }).filter(Boolean);
+}
+
+async function fetchTokenPrice(symbol) {
+  if (!tokenPriceMap[symbol]) return 0;
+  if (tokenPriceMap[symbol].coingeckoId) {
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${tokenPriceMap[symbol].coingeckoId}&vs_currencies=usd`);
+    const data = await res.json();
+    return data[tokenPriceMap[symbol].coingeckoId]?.usd || 0;
+  }
+  if (tokenPriceMap[symbol].birdeyeSymbol) {
+    const res = await fetch(`https://public-api.birdeye.so/public/price?symbol=${tokenPriceMap[symbol].birdeyeSymbol}`);
+    const data = await res.json();
+    return data?.data?.value || 0;
+  }
+  return 0;
+}
+
+async function updateDashboard() {
+  const tokens = await fetchWalletTokens();
+  let totalValue = 0;
+  const tokensDiv = document.getElementById('tokens');
+  tokensDiv.innerHTML = '';
+
+  for (const token of tokens) {
+    const price = await fetchTokenPrice(token.symbol);
+    const value = token.amount * price;
+    totalValue += value;
+
+    const tokenDiv = document.createElement('div');
+    tokenDiv.className = 'token';
+    tokenDiv.innerHTML = `
+      <strong>${token.symbol}</strong><br>
+      Balance: ${token.amount.toFixed(2)}<br>
+      Price: $${price.toFixed(4)}<br>
+      Value: $${value.toFixed(2)}
+    `;
+    tokensDiv.appendChild(tokenDiv);
+  }
+
+  document.getElementById('totalValue').innerText = `Total Portfolio Value: $${totalValue.toFixed(2)}`;
+}
+
+updateDashboard();
+setInterval(updateDashboard, 60000);
+</script>
+
+</body>
+</html>
