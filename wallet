@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kiwi Wallet Tracker (Rough Draft)</title>
+</head>
+<body>
+  <h1>Kiwi Wallet Tracker</h1>
+  <table border="1" id="walletTable">
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Amount</th>
+        <th>Price (USD)</th>
+        <th>Total Value (USD)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Live data will be injected here -->
+    </tbody>
+  </table>
+
+  <script>
+    const walletAddress = "2eb81eBXidrgW6sSzTDnHTEQpqJpmkANMCSRS1BKjUku";
+
+    async function fetchHoldings() {
+      const holdingsUrl = `https://api.solana.fm/v0/accounts/${walletAddress}/tokens?limit=1000&network=mainnet-beta`;
+      const headers = { "accept": "application/json" };
+
+      const response = await fetch(holdingsUrl, { headers });
+      const data = await response.json();
+      return data.tokens || [];
+    }
+
+    async function fetchPrices() {
+      const response = await fetch("https://api.dexscreener.com/latest/dex/tokens?chainIds=solana");
+      const data = await response.json();
+      return data.pairs || [];
+    }
+
+    async function loadWallet() {
+      const tableBody = document.getElementById("walletTable").querySelector("tbody");
+      tableBody.innerHTML = "";
+
+      const [holdings, priceData] = await Promise.all([fetchHoldings(), fetchPrices()]);
+
+      for (const token of holdings) {
+        const symbol = token.token.symbol || "Unknown";
+        const amount = Number(token.tokenAmount.uiAmountString || 0);
+
+        if (amount <= 0) continue; // Skip empty holdings
+
+        // Find matching price info
+        const matchingPrice = priceData.find(p => p.baseToken.address === token.token.mint);
+
+        const priceUsd = matchingPrice ? Number(matchingPrice.priceUsd) : 0;
+        const totalValue = priceUsd * amount;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${symbol}</td>
+          <td>${amount.toFixed(4)}</td>
+          <td>${priceUsd.toFixed(4)}</td>
+          <td>${totalValue.toFixed(2)}</td>
+        `;
+        tableBody.appendChild(row);
+      }
+    }
+
+    loadWallet();
+    // You can later add: setInterval(loadWallet, 90000); for auto-refresh every 90 seconds
+  </script>
+</body>
+</html>
